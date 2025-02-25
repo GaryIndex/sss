@@ -43,7 +43,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.0.0</version>
                 <configuration>
-                    <mainClass>Index</mainClass> <!-- 修改为你的类名 -->
+                    <mainClass>cn.6tail.tyme4j.Index</mainClass> <!-- 修改为你的类名 -->
                 </configuration>
             </plugin>
         </plugins>
