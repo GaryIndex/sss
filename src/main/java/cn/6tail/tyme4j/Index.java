@@ -1,3 +1,4 @@
+package cn.6tail.tyme4j;
 import cn.6tail.tyme4j.*; // 第一行，确保正确
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.*;
