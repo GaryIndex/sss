@@ -58,7 +58,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.3.0</version> <!-- 更新到最新版 -->
                 <configuration>
-                    <mainClass>cn.sixTail.tyme4j.Index</mainClass> <!-- 与代码包名一致 -->
+                    <mainClass>cn.6tail.tyme4j.Index</mainClass> <!-- 与代码包名一致 -->
                 </configuration>
             </plugin>
             <!-- 添加资源插件确保文件编码 -->
