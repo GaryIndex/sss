@@ -6,7 +6,7 @@ on:
       java_version:
         description: 'Java version to use'
         required: true
-        default: '11'
+        default: '1.8'  # 强制默认使用 Java 8
       log_level:
         description: 'Log level for the run'
         required: false
@@ -28,14 +28,14 @@ jobs:
           cache: 'maven'
 
       - name: Build with Maven (Debug Mode)
-        run: mvn clean install -e -X  # 使用 install 生成可执行的包
+        run: mvn clean install -e -X  # 使用 -e 输出错误堆栈，-X 启用调试日志
 
       - name: Run Java program
-        run: mvn exec:java -Dexec.mainClass="Index"  # 确保 Index 类正确
+        run: mvn exec:java -Dexec.mainClass="cn.6tail.tyme4j.Index"  # 确保使用全限定类名
 
       - name: Upload log file
         uses: actions/upload-artifact@v4
-        if: always()  # 即使失败也上传日志
+        if: always()
         with:
           name: generator-log
-          path: generator_log.txt
+          path: generator_log.txt  # 确保日志文件路径正确
