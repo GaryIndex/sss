@@ -1,5 +1,4 @@
 package cn.6tail.tyme4j;
-
 import cn.6tail.tyme4j.culture.Holiday;
 import cn.6tail.tyme4j.culture.Hour;
 import cn.6tail.tyme4j.lunar.LunarDay;
@@ -9,7 +8,6 @@ import cn.6tail.tyme4j.culture.SixtyCycle;
 import cn.6tail.tyme4j.solar.SolarDay;
 import cn.6tail.tyme4j.solar.SolarTerm;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
