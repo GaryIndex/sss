@@ -1,0 +1,41 @@
+name: Manual Install and Run with Maven
+
+on:
+  workflow_dispatch:
+    inputs:
+      java_version:
+        description: 'Java version to use'
+        required: true
+        default: '11'
+      log_level:
+        description: 'Log level for the run'
+        required: false
+        default: 'info'
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ github.event.inputs.java_version }}
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build with Maven (Debug Mode)
+        run: mvn clean install -e -X  # 使用 install 生成可执行的包
+
+      - name: Run Java program
+        run: mvn exec:java -Dexec.mainClass="Index"  # 确保 Index 类正确
+
+      - name: Upload log file
+        uses: actions/upload-artifact@v4
+        if: always()  # 即使失败也上传日志
+        with:
+          name: generator-log
+          path: generator_log.txt
