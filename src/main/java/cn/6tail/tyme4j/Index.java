@@ -1,13 +1,13 @@
 package cn.6tail.tyme4j;
 
-import cn.sixTail.tyme4j.culture.Holiday;
-import cn.sixTail.tyme4j.culture.Hour;
-import cn.sixTail.tyme4j.lunar.LunarDay;
-import cn.sixTail.tyme4j.lunar.LunarMonth;
-import cn.sixTail.tyme4j.lunar.LunarYear;
-import cn.sixTail.tyme4j.culture.SixtyCycle;
-import cn.sixTail.tyme4j.solar.SolarDay;
-import cn.sixTail.tyme4j.solar.SolarTerm;
+import cn.6tail.tyme4j.culture.Holiday;
+import cn.6tail.tyme4j.culture.Hour;
+import cn.6tail.tyme4j.lunar.LunarDay;
+import cn.6tail.tyme4j.lunar.LunarMonth;
+import cn.6tail.tyme4j.lunar.LunarYear;
+import cn.6tail.tyme4j.culture.SixtyCycle;
+import cn.6tail.tyme4j.solar.SolarDay;
+import cn.6tail.tyme4j.solar.SolarTerm;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.BufferedWriter;
