@@ -8,8 +8,11 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>11</maven.compiler.source> <!-- 升级到Java 11 -->
+        <maven.compiler.target>11</maven.compiler.target> <!-- 升级到Java 11 -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> <!-- 添加编码 -->
+        <tyme4j.version>1.2.0</tyme4j.version> <!-- 定义版本变量 -->
+        <jackson.version>2.16.1</jackson.version> <!-- 更新到最新稳定版 -->
     </properties>
 
     <dependencies>
@@ -17,13 +20,24 @@
         <dependency>
             <groupId>cn.6tail</groupId>
             <artifactId>tyme4j</artifactId>
-            <version>1.2.0</version>
+            <version>${tyme4j.version}</version>
         </dependency>
         <!-- Jackson 依赖 -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.12.5</version>
+            <version>${jackson.version}</version>
+        </dependency>
+        <!-- Jackson 核心和注解支持（可选，但推荐） -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
     </dependencies>
 
@@ -32,20 +46,38 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.13.0</version> <!-- 更新到最新版 -->
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>3.3.0</version> <!-- 更新到最新版 -->
                 <configuration>
-                    <mainClass>cn.6tail.tyme4j.Index</mainClass> <!-- 修改为你的类名 -->
+                    <mainClass>cn.sixTail.tyme4j.Index</mainClass> <!-- 与代码包名一致 -->
+                </configuration>
+            </plugin>
+            <!-- 添加资源插件确保文件编码 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <configuration>
+                    <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
             </plugin>
         </plugins>
     </build>
+
+    <!-- 指定Maven仓库（可选，针对cn.6tail可能需要） -->
+    <repositories>
+        <repository>
+            <id>central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
+    </repositories>
 </project>
