@@ -46,7 +46,9 @@ public class Index {
 
     // 添加新的方法来写入日志文件
     private static void writeToLogFile(String content) throws IOException {
-    File logDir = new File("file");
+    //File logDir = new File("file");
+    // 建议修改为绝对路径或项目相对路径
+    File logDir = new File(System.getProperty("user.dir") + "/file");
     if (!logDir.exists()) {
         logDir.mkdirs(); // 创建目录如果不存在
     }
