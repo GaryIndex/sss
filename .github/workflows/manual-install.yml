@@ -27,15 +27,20 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Build with Maven (Debug Mode)
-        run: mvn clean install -e -X  # 使用 install 生成可执行的包
+      - name: Build with Maven
+        run: mvn clean install -e -B  # -X 改为 -B 以减少冗长输出，除非需要调试
 
       - name: Run Java program
-        run: mvn exec:java -Dexec.mainClass="cn.6tail.tyme4j.Index"  # 确保 Index 类正确
+        run: |
+          mvn exec:java -Dexec.mainClass="cn.sixTail.tyme4j.Index" \
+            -Dlog.level=${{ github.event.inputs.log_level }}
+        env:
+          JAVA_OPTS: "-Xmx512m"  # 设置运行时的内存限制
 
       - name: Upload log file
         uses: actions/upload-artifact@v4
-        if: always()  # 即使失败也上传日志
+        if: always()
         with:
           name: generator-log
-          path: generator_log.txt
+          path: ${{ runner.workspace }}/tyme4j-generator/logs/generator_log.txt  # 更新为实际日志路径
+        continue-on-error: true  # 即使上传失败也不终止工作流
