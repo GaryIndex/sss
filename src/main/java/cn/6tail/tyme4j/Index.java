@@ -1,4 +1,4 @@
-package cn.sixTail.tyme4j;
+package cn.6tail.tyme4j;
 
 import cn.sixTail.tyme4j.culture.Holiday;
 import cn.sixTail.tyme4j.culture.Hour;
