@@ -32,7 +32,7 @@ jobs:
 
       - name: Run Java program
         run: |
-          mvn exec:java -Dexec.mainClass="cn.sixTail.tyme4j.Index" \
+          mvn exec:java -Dexec.mainClass="cn.6tail.tyme4j.Index" \
             -Dlog.level=${{ github.event.inputs.log_level }}
         env:
           JAVA_OPTS: "-Xmx512m"  # 设置运行时的内存限制
