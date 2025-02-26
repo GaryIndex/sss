@@ -13,28 +13,40 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <tyme4j.version>1.2.0</tyme4j.version>
         <jackson.version>2.16.1</jackson.version>
+        <slf4j.version>2.0.13</slf4j.version>
+        <logback.version>1.5.6</logback.version>
+        <hutool.version>5.8.28</hutool.version>
     </properties>
 
     <dependencies>
+        <!-- tyme4j 依赖 -->
         <dependency>
             <groupId>cn.6tail</groupId>
             <artifactId>tyme4j</artifactId>
             <version>${tyme4j.version}</version>
         </dependency>
+        <!-- Jackson 依赖 -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
         </dependency>
+        <!-- SLF4J 和 Logback 日志 -->
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>${jackson.version}</version>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-            <version>${jackson.version}</version>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+        <!-- Hutool 工具库 -->
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>${hutool.version}</version>
         </dependency>
     </dependencies>
 
@@ -55,7 +67,6 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.3.0</version>
                 <configuration>
-                    <!-- 关键修正：主类路径与代码包名一致 -->
                     <mainClass>com.example.Index</mainClass>
                 </configuration>
             </plugin>
@@ -67,13 +78,5 @@
                     <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
             </plugin>
-        </plugins>
-    </build>
-
-    <repositories>
-        <repository>
-            <id>central</id>
-            <url>https://repo.maven.apache.org/maven2</url>
-        </repository>
-    </repositories>
-</project>
+        </build>
+    </project>
