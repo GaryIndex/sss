@@ -1,5 +1,7 @@
 package com.example;
 
+import cn.hutool.core.io.FileUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tyme.culture.Holiday;
 import com.tyme.culture.Hour;
 import com.tyme.culture.SixtyCycle;
@@ -8,79 +10,103 @@ import com.tyme.lunar.LunarMonth;
 import com.tyme.lunar.LunarYear;
 import com.tyme.solar.SolarDay;
 import com.tyme.solar.SolarTerm;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.BufferedWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Index 类用于生成和查询基于公历、农历及相关信息的每日JSON数据。
  * 支持同步历史数据、查询特定日期的指定类型信息，并记录操作日志。
  */
 public class Index {
+    // 使用 SLF4J 日志框架
+    private static final Logger LOGGER = LoggerFactory.getLogger(Index.class);
 
+    // 配置常量（可移至外部配置文件）
     private static final String BASE_DIR = System.getProperty("user.dir");
     private static final String OUTPUT_DIR = BASE_DIR + "/Datefile";
     private static final String LOG_DIR = BASE_DIR + "/logs";
-    private static final String LOG_FILE = LOG_DIR + "/generator_log.txt";
     private static final ZoneId BEIJING_ZONE = ZoneId.of("Asia/Shanghai");
     private static final LocalDate START_DATE = LocalDate.of(2025, 1, 1);
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
+    // 支持的日期格式
     private static final DateTimeFormatter[] DATE_FORMATS = {
         DateTimeFormatter.ofPattern("yyyy-MM-dd"),
         DateTimeFormatter.ofPattern("yyyy/MM/dd"),
         DateTimeFormatter.ofPattern("yyyyMMdd")
     };
 
-    public static void main(String[] args) throws IOException {
-        initDirectories();
-        LocalDate today = LocalDate.now(BEIJING_ZONE);
-        log("程序启动", "当前日期: " + today);
+    // 文件操作锁，确保并发安全
+    private static final ReentrantLock FILE_LOCK = new ReentrantLock();
 
-        syncAllData(START_DATE, today);
+    // 类别拼音映射表，提升扩展性
+    private static final Map<String, String> CATEGORY_PINYIN_MAP = new HashMap<>();
 
-        String todayHolidayJson = queryData("节假日", null);
-        log("查询结果", "当天节假日:\n" + prettyPrintJson(todayHolidayJson));
-
-        String holidayJson1 = queryData("节假日", "2025-02-25");
-        log("查询结果", "节假日 2025-02-25:\n" + prettyPrintJson(holidayJson1));
-
-        String holidayJson2 = queryData("节假日", "2025/02/25");
-        log("查询结果", "节假日 2025/02/25:\n" + prettyPrintJson(holidayJson2));
-
-        String hoursJson = queryData("12时辰", "20250225");
-        log("查询结果", "12时辰 2025-02-25:\n" + prettyPrintJson(hoursJson));
+    static {
+        CATEGORY_PINYIN_MAP.put("节假日", "jiejiari");
+        CATEGORY_PINYIN_MAP.put("12时辰", "shierShichen");
+        CATEGORY_PINYIN_MAP.put("24节气", "ershisiJieqi");
+        CATEGORY_PINYIN_MAP.put("基本日期信息", "jibenRqiXinxi");
+        CATEGORY_PINYIN_MAP.put("老黄历", "laohuangli");
+        CATEGORY_PINYIN_MAP.put("星座", "xingzuo");
     }
 
+    public static void main(String[] args) {
+        try {
+            initDirectories();
+            LocalDate today = LocalDate.now(BEIJING_ZONE);
+            LOGGER.info("程序启动，当前日期: {}", today);
+
+            syncAllData(START_DATE, today);
+
+            String todayHolidayJson = queryData("节假日", null);
+            LOGGER.info("当天节假日查询结果:\n{}", todayHolidayJson);
+
+            String holidayJson1 = queryData("节假日", "2025-02-25");
+            LOGGER.info("节假日 2025-02-25 查询结果:\n{}", holidayJson1);
+
+            String holidayJson2 = queryData("节假日", "2025/02/25");
+            LOGGER.info("节假日 2025/02/25 查询结果:\n{}", holidayJson2);
+
+            String hoursJson = queryData("12时辰", "20250225");
+            LOGGER.info("12时辰 2025-02-25 查询结果:\n{}", hoursJson);
+        } catch (IOException e) {
+            LOGGER.error("程序运行异常", e);
+        }
+    }
+
+    // 初始化目录结构
     private static void initDirectories() throws IOException {
-        File outputDir = new File(OUTPUT_DIR);
-        File logDir = new File(LOG_DIR);
-        if (!outputDir.exists() && !outputDir.mkdirs()) {
-            throw new IOException("无法创建输出目录: " + OUTPUT_DIR);
+        try {
+            FileUtil.mkdir(OUTPUT_DIR);
+            FileUtil.mkdir(LOG_DIR);
+            LOGGER.info("目录初始化完成，输出目录: {}, 日志目录: {}", OUTPUT_DIR, LOG_DIR);
+        } catch (Exception e) {
+            LOGGER.error("无法创建目录", e);
+            throw new IOException("目录初始化失败", e);
         }
-        if (!logDir.exists() && !logDir.mkdirs()) {
-            throw new IOException("无法创建日志目录: " + LOG_DIR);
-        }
-        log("目录初始化", "输出目录: " + OUTPUT_DIR + ", 日志目录: " + LOG_DIR);
     }
 
-    private static String prettyPrintJson(String json) throws IOException {
+    // 美化JSON输出（优化为可选）
+    private static String prettyPrintJson(String json, boolean pretty) throws IOException {
+        if (!pretty) return json;
         Object jsonObject = MAPPER.readValue(json, Object.class);
         return MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObject);
     }
 
+    // 同步所有数据
     private static void syncAllData(LocalDate startDate, LocalDate today) throws IOException {
-        log("开始同步所有数据", "起始日期: " + startDate + ", 结束日期: " + today);
+        LOGGER.info("开始同步所有数据，起始日期: {}, 结束日期: {}", startDate, today);
         for (int year = startDate.getYear(); year <= today.getYear(); year++) {
             int startMonth = (year == startDate.getYear()) ? startDate.getMonthValue() : 1;
             int endMonth = (year == today.getYear()) ? today.getMonthValue() : 12;
@@ -89,43 +115,47 @@ public class Index {
                 syncMonthlyData(year, month, today);
             }
         }
-        log("完成同步所有数据", "结束时间: " + LocalDateTime.now(BEIJING_ZONE));
+        LOGGER.info("完成同步所有数据，结束时间: {}", LocalDateTime.now(BEIJING_ZONE));
     }
 
+    // 同步月度数据
     private static void syncMonthlyData(int year, int month, LocalDate today) throws IOException {
         String dirPath = OUTPUT_DIR + "/" + year + "/" + String.format("%02d", month);
-        File dir = new File(dirPath);
-        if (!dir.exists() && !dir.mkdirs()) {
-            throw new IOException("无法创建月度目录: " + dirPath);
-        }
-
+        FileUtil.mkdir(dirPath);
         String filePath = dirPath + "/data.json";
         File file = new File(filePath);
+
         int daysInMonth = SolarDay.fromYmd(year, month, 1).getLastDayOfMonth().getDay();
         int endDay = (year == today.getYear() && month == today.getMonthValue()) ? today.getDayOfMonth() : daysInMonth;
 
         Map<String, Map<String, Object>> monthlyData;
-        if (file.exists()) {
-            monthlyData = MAPPER.readValue(file, MAPPER.getTypeFactory().constructMapType(Map.class, String.class, Map.class));
-            monthlyData = updateOrFillMonthlyData(monthlyData, year, month, endDay);
-        } else {
-            monthlyData = generateFullMonthlyData(year, month, endDay);
+        FILE_LOCK.lock();
+        try {
+            if (file.exists()) {
+                monthlyData = MAPPER.readValue(file, MAPPER.getTypeFactory().constructMapType(Map.class, String.class, Map.class));
+                monthlyData = updateOrFillMonthlyData(monthlyData, year, month, endDay);
+            } else {
+                monthlyData = generateFullMonthlyData(year, month, endDay);
+            }
+            MAPPER.writeValue(file, monthlyData);
+            LOGGER.info("更新月度文件，路径: {}，共 {} 天", filePath, monthlyData.size());
+        } finally {
+            FILE_LOCK.unlock();
         }
-
-        MAPPER.writeValue(file, monthlyData);
-        log("更新月度文件", "路径: " + filePath + "，共 " + monthlyData.size() + " 天");
     }
 
+    // 生成完整月度数据
     private static Map<String, Map<String, Object>> generateFullMonthlyData(int year, int month, int endDay) throws IOException {
         Map<String, Map<String, Object>> monthlyData = new HashMap<>();
         for (int day = 1; day <= endDay; day++) {
             SolarDay solarDay = SolarDay.fromYmd(year, month, day);
             monthlyData.put(solarDay.toString(), generateDailyData(solarDay));
         }
-        log("生成完整月度数据", "年月: " + year + "-" + String.format("%02d", month));
+        LOGGER.info("生成完整月度数据，年月: {}-{}", year, String.format("%02d", month));
         return monthlyData;
     }
 
+    // 更新或填充月度数据
     private static Map<String, Map<String, Object>> updateOrFillMonthlyData(Map<String, Map<String, Object>> existingData, int year, int month, int endDay) throws IOException {
         Map<String, Map<String, Object>> updatedData = new HashMap<>(existingData);
         for (int day = 1; day <= endDay; day++) {
@@ -133,16 +163,19 @@ public class Index {
             if (!updatedData.containsKey(dateKey) || isDataIncomplete(updatedData.get(dateKey))) {
                 SolarDay solarDay = SolarDay.fromYmd(year, month, day);
                 updatedData.put(dateKey, generateDailyData(solarDay));
-                log("补全月度数据", "日期: " + dateKey);
+                LOGGER.info("补全月度数据，日期: {}", dateKey);
             }
         }
         return updatedData;
     }
 
+    // 检查数据是否完整（扩展检查所有关键字段）
     private static boolean isDataIncomplete(Map<String, Object> dayData) {
-        return dayData == null || !dayData.containsKey("shierShichen") || !dayData.containsKey("ershisiJieqi");
+        return dayData == null || !dayData.containsKey("shierShichen") || !dayData.containsKey("ershisiJieqi")
+            || !dayData.containsKey("jiejiari") || !dayData.containsKey("laohuangli");
     }
 
+    // 生成单日数据
     private static Map<String, Object> generateDailyData(SolarDay solarDay) throws IOException {
         Map<String, Object> dailyData = new HashMap<>();
         LunarDay lunarDay = solarDay.getLunarDay();
@@ -196,62 +229,76 @@ public class Index {
         zodiacInfo.put("xingzuo", solarDay.getZodiac().getName());
         dailyData.put("xingzuo", zodiacInfo);
 
-        log("生成单日数据", "日期: " + solarDay.toString() + ", 数据详情: " + MAPPER.writeValueAsString(dailyData));
+        LOGGER.debug("生成单日数据，日期: {}, 数据详情: {}", solarDay, MAPPER.writeValueAsString(dailyData));
         return dailyData;
     }
 
+    // 查询数据
     public static String queryData(String category, String dateStr) throws IOException {
         LocalDate date = parseDate(dateStr);
         String filePath = OUTPUT_DIR + "/" + date.getYear() + "/" + String.format("%02d", date.getMonthValue()) + "/data.json";
         File file = new File(filePath);
         Map<String, Map<String, Object>> monthlyData;
 
-        log("查询数据", "类型: " + category + ", 日期: " + date);
+        LOGGER.info("查询数据，类型: {}, 日期: {}", category, date);
 
-        if (file.exists()) {
-            monthlyData = MAPPER.readValue(file, MAPPER.getTypeFactory().constructMapType(Map.class, String.class, Map.class));
-        } else {
-            monthlyData = new HashMap<>();
-            log("文件不存在", "路径: " + filePath);
+        FILE_LOCK.lock();
+        try {
+            if (file.exists()) {
+                monthlyData = MAPPER.readValue(file, MAPPER.getTypeFactory().constructMapType(Map.class, String.class, Map.class));
+            } else {
+                monthlyData = new HashMap<>();
+                LOGGER.warn("查询文件不存在，路径: {}", filePath);
+            }
+
+            String dateKey = date.toString();
+            Map<String, Object> result = new HashMap<>();
+
+            if (!monthlyData.containsKey(dateKey) || isDataIncomplete(monthlyData.get(dateKey))) {
+                SolarDay solarDay = SolarDay.fromYmd(date.getYear(), date.getMonthValue(), date.getDayOfMonth());
+                monthlyData.put(dateKey, generateDailyData(solarDay));
+                MAPPER.writeValue(file, monthlyData);
+                LOGGER.info("补全丢失数据，日期: {}", dateKey);
+            }
+
+            Map<String, Object> dayData = monthlyData.get(dateKey);
+            String pinyinCategory = convertToPinyin(category);
+            if (dayData.containsKey(pinyinCategory)) {
+                Map<String, Object> categoryData = new HashMap<>();
+                categoryData.put(pinyinCategory, dayData.get(pinyinCategory));
+                result.put(dateKey, categoryData);
+            }
+
+            String jsonResult = MAPPER.writeValueAsString(result);
+            return prettyPrintJson(jsonResult, true); // 可配置是否美化
+        } finally {
+            FILE_LOCK.unlock();
         }
-
-        String dateKey = date.toString();
-        Map<String, Object> result = new HashMap<>();
-
-        if (!monthlyData.containsKey(dateKey) || isDataIncomplete(monthlyData.get(dateKey))) {
-            SolarDay solarDay = SolarDay.fromYmd(date.getYear(), date.getMonthValue(), date.getDayOfMonth());
-            result = generateDailyData(solarDay);
-        } else {
-            result = monthlyData.get(dateKey);
-        }
-
-        if (category.equals("节假日")) {
-            return MAPPER.writeValueAsString(result.get("jiejiari"));
-        } else if (category.equals("12时辰")) {
-            return MAPPER.writeValueAsString(result.get("shierShichen"));
-        } else if (category.equals("节气")) {
-            return MAPPER.writeValueAsString(result.get("ershisiJieqi"));
-        }
-        return "{}";
     }
 
+    // 转换为拼音
+    private static String convertToPinyin(String category) {
+        return CATEGORY_PINYIN_MAP.getOrDefault(category, category);
+    }
+
+    // 解析日期
     private static LocalDate parseDate(String dateStr) {
-        if (dateStr == null || dateStr.isEmpty()) {
-            return LocalDate.now(BEIJING_ZONE);
+        if (dateStr == null || dateStr.trim().isEmpty()) {
+            LocalDate today = LocalDate.now(BEIJING_ZONE);
+            LOGGER.info("使用默认日期，当天: {}", today);
+            return today;
         }
 
-        for (DateTimeFormatter format : DATE_FORMATS) {
+        for (DateTimeFormatter formatter : DATE_FORMATS) {
             try {
-                return LocalDate.parse(dateStr, format);
+                LocalDate date = LocalDate.parse(dateStr, formatter);
+                LOGGER.debug("日期解析成功，{} -> {}", dateStr, date);
+                return date;
             } catch (DateTimeParseException ignored) {
+                // 尝试下一个格式
             }
         }
-        return LocalDate.now(BEIJING_ZONE);
-    }
-
-    private static void log(String operation, String message) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new FileWriter(LOG_FILE, true));
-        writer.write(LocalDateTime.now(BEIJING_ZONE).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + " - " + operation + " - " + message + "\n");
-        writer.close();
+        LOGGER.error("无法解析日期格式: {}", dateStr);
+        throw new IllegalArgumentException("无效的日期格式: " + dateStr + "，支持格式: yyyy-MM-dd, yyyy/MM/dd, yyyyMMdd");
     }
 }
