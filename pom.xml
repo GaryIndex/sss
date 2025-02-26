@@ -78,5 +78,6 @@
                     <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
             </plugin>
-        </build>
-    </project>
+        </plugins>
+    </build>
+</project>
