@@ -7,10 +7,6 @@ on:
         description: 'Java version to use'
         required: true
         default: '11'
-      log_level:
-        description: 'Log level for the run'
-        required: false
-        default: 'info'
 
 jobs:
   build-and-run:
@@ -28,19 +24,15 @@ jobs:
           cache: 'maven'
 
       - name: Build with Maven
-        run: mvn clean install -e -B  # -X 改为 -B 以减少冗长输出，除非需要调试
+        run: mvn clean install -e -B
 
       - name: Run Java program
-        run: |
-          mvn exec:java -Dexec.mainClass="cn.6tail.tyme4j.Index" \
-            -Dlog.level=${{ github.event.inputs.log_level }}
-        env:
-          JAVA_OPTS: "-Xmx512m"  # 设置运行时的内存限制
+        run: mvn exec:java -Dexec.mainClass="com.example.Index"
 
       - name: Upload log file
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: generator-log
-          path: ${{ runner.workspace }}/tyme4j-generator/logs/generator_log.txt  # 更新为实际日志路径
-        continue-on-error: true  # 即使上传失败也不终止工作流
+          path: ${{ runner.workspace }}/logs/generator_log.txt
+        continue-on-error: true
