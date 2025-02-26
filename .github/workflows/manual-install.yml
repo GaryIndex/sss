@@ -29,6 +29,12 @@ jobs:
       - name: Run Java program
         run: mvn exec:java -Dexec.mainClass="com.example.Index"
 
+      - name: Create log directory
+        run: mkdir -p ${{ runner.workspace }}/logs
+
+      - name: Save logs
+        run: mvn clean install -e -B | tee ${{ runner.workspace }}/logs/generator_log.txt
+
       - name: Upload log file
         uses: actions/upload-artifact@v4
         if: always()
