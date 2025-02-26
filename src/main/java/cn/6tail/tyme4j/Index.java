@@ -1,12 +1,13 @@
-package cn.6tail.tyme4j;
-import cn.6tail.tyme4j.culture.Holiday;
-import cn.6tail.tyme4j.culture.Hour;
-import cn.6tail.tyme4j.lunar.LunarDay;
-import cn.6tail.tyme4j.lunar.LunarMonth;
-import cn.6tail.tyme4j.lunar.LunarYear;
-import cn.6tail.tyme4j.culture.SixtyCycle;
-import cn.6tail.tyme4j.solar.SolarDay;
-import cn.6tail.tyme4j.solar.SolarTerm;
+package com.example; // 改为您项目合法的包名
+
+import com.tyme.culture.Holiday;
+import com.tyme.culture.Hour;
+import com.tyme.culture.SixtyCycle;
+import com.tyme.lunar.LunarDay;
+import com.tyme.lunar.LunarMonth;
+import com.tyme.lunar.LunarYear;
+import com.tyme.solar.SolarDay;
+import com.tyme.solar.SolarTerm;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.BufferedWriter;
 import java.io.File;
