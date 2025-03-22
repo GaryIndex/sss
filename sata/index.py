@@ -11,10 +11,31 @@ import matplotlib.pyplot as plt  # 可视化支持
 XAI_API_KEY = "your_xai_api_key"  # 替换为你的xAI API密钥
 XAI_API_URL = "https://api.x.ai/v1/chat/completions"
 RPC_URLS = {
-    "ETH": "https://mainnet.infura.io/v3/your_infura_key",
-    "BSC": "https://bsc-dataseed.binance.org/",
-    "SOL": "https://api.mainnet-beta.solana.com",
-    # 可添加其他22条链的RPC端点，如Polygon、Avalanche等
+    "ETH": "https://mainnet.infura.io/v3/your_infura_key",  # Ethereum Mainnet
+    "BSC": "https://bsc-dataseed.binance.org/",             # Binance Smart Chain
+    "SOL": "https://api.mainnet-beta.solana.com",          # Solana Mainnet
+    "POLY": "https://polygon-rpc.com/",                    # Polygon (MATIC)
+    "AVAX": "https://api.avax.network/ext/bc/C/rpc",       # Avalanche C-Chain
+    "ARB": "https://arb1.arbitrum.io/rpc",                 # Arbitrum One
+    "OP": "https://mainnet.optimism.io",                   # Optimism
+    "FTM": "https://rpc.ftm.tools/",                       # Fantom
+    "TRON": "https://api.trongrid.io",                     # TRON
+    "ADA": "https://cardano-mainnet.blockfrost.io",        # Cardano (requires API key)
+    "XRP": "https://xrplcluster.com",                      # XRP Ledger
+    "DOT": "wss://rpc.polkadot.io",                        # Polkadot (WebSocket)
+    "KSM": "wss://kusama-rpc.polkadot.io",                 # Kusama (WebSocket)
+    "ALGO": "https://mainnet-algorand.api.purestake.io/ps2",# Algorand (may need API key)
+    "NEAR": "https://rpc.mainnet.near.org",                # NEAR Protocol
+    "COSMOS": "https://rpc.cosmos.network",                # Cosmos Hub
+    "STELLAR": "https://horizon.stellar.org",              # Stellar
+    "HARMONY": "https://api.harmony.one",                  # Harmony
+    "HECO": "https://http-mainnet.hecochain.com",          # Huobi ECO Chain
+    "KLAY": "https://public-node-api.klaytnapi.com/v1/cypress", # Klaytn
+    "MOVR": "https://rpc.moonriver.moonbeam.network",      # Moonriver
+    "CELO": "https://forno.celo.org",                      # Celo
+    "RON": "https://api.roninchain.com/rpc",               # Ronin (Axie Infinity)
+    "GNO": "https://rpc.gnosischain.com",                  # Gnosis Chain
+    "THETA": "https://eth-rpc-api.thetatoken.org/rpc",     # Theta Network
 }
 BLACKLIST_ADDRESSES = {"0xBlacklistedAddress"}  # 示例黑名单，需集成实时数据
 TOP_5_AUDITORS = ["Quantstamp", "CertiK", "OpenZeppelin", "Hacken", "Consensys Diligence"]
